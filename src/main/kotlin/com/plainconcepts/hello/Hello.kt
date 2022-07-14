@@ -1,5 +1,8 @@
 package com.plainconcepts.hello
 
-fun hello(): String {
-    return "Hello, world!"
+import com.plainconcepts.hello.domain.Language
+
+fun hello(lang: String? = null): String {
+    val language = lang?.let { Language.find(lang) } ?: Language.random()
+    return language.greet()
 }
