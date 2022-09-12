@@ -18,8 +18,8 @@ class Language(
             return all.random()
         }
 
-        fun find(code: String): Language? {
-            return all.firstOrNull { it.code == code }
+        fun find(code: String): Language {
+            return all.first { it.code == code }
         }
     }
 
