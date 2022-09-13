@@ -1,9 +1,11 @@
-package com.plainconcepts.hello
+package com.plainconcepts.hello.api
 
 import com.plainconcepts.hello.plugins.configureMockDatabase
 import com.plainconcepts.hello.plugins.configureRouting
+import com.plainconcepts.hello.plugins.testClient
+import com.plainconcepts.hello.viewmodels.Message
+import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import org.junit.jupiter.api.Assertions
@@ -14,7 +16,7 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class HelloTest {
+class GetHelloTest {
 
     val values = listOf(
         "Hello, world!",
@@ -30,8 +32,8 @@ class HelloTest {
             configureMockDatabase()
             configureRouting()
         }
-        val resp = client.get("/")
-        Assertions.assertTrue(values.contains(resp.bodyAsText()))
+        val resp = testClient.get("/")
+        Assertions.assertTrue(values.contains(resp.body<Message>().message))
     }
 
     private fun getData(): List<Arguments> {
@@ -51,8 +53,8 @@ class HelloTest {
             configureMockDatabase()
             configureRouting()
         }
-        val resp = client.get("/") { url {parameters.append("lang", lang) } }
-        Assertions.assertEquals(result, resp.bodyAsText())
+        val resp = testClient.get("/") { url {parameters.append("lang", lang) } }
+        Assertions.assertEquals(result, resp.body<Message>().message)
     }
 
     @Test
@@ -61,8 +63,8 @@ class HelloTest {
             configureMockDatabase()
             configureRouting()
         }
-        val resp = client.get("/") { url { parameters.append("lang", "ru") } }
+        val resp = testClient.get("/") { url { parameters.append("lang", "ru") } }
         Assertions.assertEquals(HttpStatusCode.NotFound, resp.status)
-        Assertions.assertEquals("I'm sorry, I don't speak 'ru'", resp.bodyAsText())
+        Assertions.assertEquals("I'm sorry, I don't speak 'ru'", resp.body<Message>().message)
     }
 }

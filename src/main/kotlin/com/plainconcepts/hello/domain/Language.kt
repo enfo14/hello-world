@@ -16,10 +16,8 @@ object Languages : IntIdTable("hello") {
 
 class Language(id: EntityID<Int>) : IntEntity(id) {
 
-    val code by Languages.code
-    private val hello by Languages.hello
-
-    fun greet() = hello
+    var code by Languages.code
+    var hello by Languages.hello
 
     companion object : IntEntityClass<Language>(Languages) {
         fun random(): Language =
@@ -32,6 +30,13 @@ class Language(id: EntityID<Int>) : IntEntity(id) {
             transaction {
                 Language.find { Languages.code.lowerCase() eq lang.lowercase() }.first()
             }
-    }
 
+        fun upsert(lang: String, value: String): Language =
+            transaction {
+                val language = Language.find { Languages.code.lowerCase() eq lang.lowercase() }.firstOrNull() ?: Language.new { code = lang }
+                language.hello = value
+                language.flush()
+                return@transaction language
+            }
+    }
 }

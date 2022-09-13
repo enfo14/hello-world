@@ -1,6 +1,6 @@
 INSERT INTO HELLO (CODE, HELLO) VALUES
-    ('EN', 'Hello, world!'),
-    ('ES', '¡Hola, mundo!'),
-    ('CA', 'Hola, món!'),
-    ('EU', 'Kaixo Mundua!'),
-    ('JP', 'こんにちは、世界！');
+    ('en', 'Hello, world!'),
+    ('es', '¡Hola, mundo!'),
+    ('ca', 'Hola, món!'),
+    ('eu', 'Kaixo Mundua!'),
+    ('jp', 'こんにちは、世界！');

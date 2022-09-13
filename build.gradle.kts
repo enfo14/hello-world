@@ -18,6 +18,7 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation:2.1.1")
     implementation("io.ktor:ktor-server-core:2.1.1")
     implementation("io.ktor:ktor-server-netty:2.1.1")
+    implementation("io.ktor:ktor-server-resources:2.1.1")
 
     implementation("org.jetbrains.exposed:exposed-core:0.39.2")
     implementation("org.jetbrains.exposed:exposed-dao:0.39.2")
@@ -36,6 +37,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
     testImplementation("com.h2database:h2:2.1.214")
+    testImplementation("io.ktor:ktor-client-content-negotiation:2.1.1")
 }
 
 tasks.test {
