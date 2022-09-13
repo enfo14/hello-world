@@ -1,5 +1,6 @@
 package com.plainconcepts.hello
 
+import com.plainconcepts.hello.plugins.configureMockDatabase
 import com.plainconcepts.hello.plugins.configureRouting
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -26,6 +27,7 @@ class HelloTest {
     @Test
     fun `should return hello world`() = testApplication {
         application {
+            configureMockDatabase()
             configureRouting()
         }
         val resp = client.get("/")
@@ -46,6 +48,7 @@ class HelloTest {
     @MethodSource("getData")
     fun `should return hello world in the selected language`(lang: String, result: String) = testApplication {
         application {
+            configureMockDatabase()
             configureRouting()
         }
         val resp = client.get("/") { url {parameters.append("lang", lang) } }
@@ -55,6 +58,7 @@ class HelloTest {
     @Test
     fun `should return a 404 Not Found if the requested language is not found`() = testApplication {
         application {
+            configureMockDatabase()
             configureRouting()
         }
         val resp = client.get("/") { url { parameters.append("lang", "ru") } }

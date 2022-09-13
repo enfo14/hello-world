@@ -1,28 +1,37 @@
 package com.plainconcepts.hello.domain
 
-class Language(
-    val code: String,
-    private val hello: String,
-){
-    companion object {
-        private val English = Language("en", "Hello, world!")
-        private val Spanish = Language("es", "¡Hola, mundo!")
-        private val Catalan = Language("ca", "Hola, món!")
-        private val Basque = Language("eu", "Kaixo Mundua!")
-        private val Japanese = Language("jp", "こんにちは、世界！")
+import org.jetbrains.exposed.dao.IntEntity
+import org.jetbrains.exposed.dao.IntEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.Random
+import org.jetbrains.exposed.sql.lowerCase
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
 
-        private val all
-            get(): List<Language> = listOf(English, Spanish, Catalan, Basque, Japanese)
-
-        fun random(): Language {
-            return all.random()
-        }
-
-        fun find(code: String): Language {
-            return all.first { it.code == code }
-        }
-    }
-
-    fun greet() = hello
+object Languages : IntIdTable("hello") {
+    val code = char("code", 2).index()
+    val hello = text("hello")
 }
 
+class Language(id: EntityID<Int>) : IntEntity(id) {
+
+    val code by Languages.code
+    private val hello by Languages.hello
+
+    fun greet() = hello
+
+    companion object : IntEntityClass<Language>(Languages) {
+        fun random(): Language =
+            transaction {
+                val query = Languages.selectAll().orderBy(Random()).first()
+                Language.wrapRow(query)
+            }
+
+        fun find(lang: String): Language =
+            transaction {
+                Language.find { Languages.code.lowerCase() eq lang.lowercase() }.first()
+            }
+    }
+
+}
