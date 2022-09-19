@@ -1,8 +1,8 @@
 package com.plainconcepts.hello.api
 
 import com.plainconcepts.hello.domain.Language
-import com.plainconcepts.hello.viewmodels.Message
-import com.plainconcepts.hello.viewmodels.LanguageRequest
+import com.plainconcepts.hello.common.Message
+import com.plainconcepts.hello.common.LanguageDTO
 import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.server.application.*
@@ -11,10 +11,11 @@ import io.ktor.server.request.*
 import io.ktor.server.routing.Route
 import io.ktor.server.resources.*
 import io.ktor.server.response.*
+import io.ktor.server.util.*
 import kotlinx.serialization.Serializable
 
 @Serializable
-@Resource("/")
+@Resource("hello")
 class HelloController(val lang: String? = null)
 
 fun Route.helloController() {
@@ -30,7 +31,7 @@ fun Route.helloController() {
 
     put<HelloController> {
         val language = try {
-            val payload = call.receive<LanguageRequest>()
+            val payload = call.receive<LanguageDTO>()
             Language.upsert(payload.code, payload.hello)
         } catch (e: BadRequestException) {
             return@put call.respond(HttpStatusCode.BadRequest, Message(e.message!!))
@@ -38,7 +39,7 @@ fun Route.helloController() {
             return@put call.respond(HttpStatusCode.InternalServerError, Message(e.message!!))
         }
 
-        call.response.headers.append(HttpHeaders.Location, "/?lang=${language.code}")
+        call.response.headers.append(HttpHeaders.Location, call.url { parameters.append("lang", language.code) })
         call.respond(HttpStatusCode.Created)
     }
 }

@@ -3,7 +3,7 @@ package com.plainconcepts.hello.api
 import com.plainconcepts.hello.plugins.configureMockDatabase
 import com.plainconcepts.hello.plugins.configureRouting
 import com.plainconcepts.hello.plugins.testClient
-import com.plainconcepts.hello.viewmodels.Message
+import com.plainconcepts.hello.common.Message
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
@@ -32,7 +32,7 @@ class GetHelloTest {
             configureMockDatabase()
             configureRouting()
         }
-        val resp = testClient.get("/")
+        val resp = testClient.get("/api/hello")
         Assertions.assertTrue(values.contains(resp.body<Message>().message))
     }
 
@@ -53,7 +53,7 @@ class GetHelloTest {
             configureMockDatabase()
             configureRouting()
         }
-        val resp = testClient.get("/") { url {parameters.append("lang", lang) } }
+        val resp = testClient.get("/api/hello") { url {parameters.append("lang", lang) } }
         Assertions.assertEquals(result, resp.body<Message>().message)
     }
 
@@ -63,7 +63,7 @@ class GetHelloTest {
             configureMockDatabase()
             configureRouting()
         }
-        val resp = testClient.get("/") { url { parameters.append("lang", "ru") } }
+        val resp = testClient.get("/api/hello") { url { parameters.append("lang", "ru") } }
         Assertions.assertEquals(HttpStatusCode.NotFound, resp.status)
         Assertions.assertEquals("I'm sorry, I don't speak 'ru'", resp.body<Message>().message)
     }

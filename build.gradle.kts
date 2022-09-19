@@ -1,9 +1,11 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
+
 
 plugins {
     application
-    kotlin("jvm") version "1.7.0"
-    kotlin("plugin.serialization") version "1.7.0"
+    kotlin("multiplatform") version "1.7.20-RC"
+    kotlin("plugin.serialization") version "1.7.20-RC"
 }
 
 group = "com.plainconcepts"
@@ -13,41 +15,114 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation("io.ktor:ktor-serialization-kotlinx-json:2.1.1")
-    implementation("io.ktor:ktor-server-content-negotiation:2.1.1")
-    implementation("io.ktor:ktor-server-core:2.1.1")
-    implementation("io.ktor:ktor-server-netty:2.1.1")
-    implementation("io.ktor:ktor-server-resources:2.1.1")
+kotlin {
+    jvm {
+        withJava()
+    }
+    js {
+        browser {
+            binaries.executable()
+        }
+    }
 
-    implementation("org.jetbrains.exposed:exposed-core:0.39.2")
-    implementation("org.jetbrains.exposed:exposed-dao:0.39.2")
-    implementation("org.jetbrains.exposed:exposed-jdbc:0.39.2")
-    implementation("org.jetbrains.exposed:exposed-java-time:0.39.2")
-    implementation("org.postgresql:postgresql:42.5.0")
-    implementation("org.flywaydb:flyway-core:9.3.0")
-    implementation("com.zaxxer:HikariCP:5.0.1")
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
+            }
+        }
+        val commonTest by getting {
+            dependsOn(commonMain)
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(kotlin("test-annotations-common"))
+            }
+        }
+        val jvmMain by getting {
+            dependsOn(commonMain)
+            dependencies {
+                implementation("ch.qos.logback:logback-classic:1.4.0")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
-    implementation("ch.qos.logback:logback-classic:1.4.0")
+                implementation("io.ktor:ktor-serialization-kotlinx-json:2.1.1")
+                implementation("io.ktor:ktor-server-content-negotiation:2.1.1")
+                implementation("io.ktor:ktor-server-core:2.1.1")
+                implementation("io.ktor:ktor-server-netty:2.1.1")
+                implementation("io.ktor:ktor-server-resources:2.1.1")
 
-    testImplementation(kotlin("test"))
-    testImplementation("io.ktor:ktor-server-tests:2.1.1")
-    testImplementation("io.ktor:ktor-server-test-host:2.1.1")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
-    testImplementation("com.h2database:h2:2.1.214")
-    testImplementation("io.ktor:ktor-client-content-negotiation:2.1.1")
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+                implementation("org.jetbrains.exposed:exposed-core:0.39.2")
+                implementation("org.jetbrains.exposed:exposed-dao:0.39.2")
+                implementation("org.jetbrains.exposed:exposed-jdbc:0.39.2")
+                implementation("org.jetbrains.exposed:exposed-java-time:0.39.2")
+                implementation("org.postgresql:postgresql:42.5.0")
+                implementation("org.flywaydb:flyway-core:9.3.0")
+                implementation("com.zaxxer:HikariCP:5.0.1")
+            }
+        }
+        val jvmTest by getting {
+            dependsOn(jvmMain)
+            dependencies {
+                implementation("io.ktor:ktor-server-tests:2.1.1")
+                implementation("io.ktor:ktor-server-test-host:2.1.1")
+                implementation("org.junit.jupiter:junit-jupiter:5.9.0")
+                implementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
+                implementation("com.h2database:h2:2.1.214")
+                implementation("io.ktor:ktor-client-content-negotiation:2.1.1")
+            }
+        }
+        val jsMain by getting {
+            dependencies {
+                implementation("io.ktor:ktor-client-js:2.1.1")
+                implementation("io.ktor:ktor-client-content-negotiation:2.1.1")
+                implementation("io.ktor:ktor-serialization-kotlinx-json:2.1.1")
+                implementation(project.dependencies.enforcedPlatform("org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom:1.0.0-pre.354"))
+                implementation("org.jetbrains.kotlin-wrappers:kotlin-react")
+                implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom")
+                implementation("org.jetbrains.kotlin-wrappers:kotlin-emotion")
+            }
+        }
+        val jsTest by getting
+    }
 }
 
 application {
     mainClass.set("com.plainconcepts.hello.MainKt")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+distributions {
+    main {
+        contents {
+            from("$buildDir/libs") {
+                rename("${rootProject.name}-jvm", rootProject.name)
+                into("lib")
+            }
+        }
+    }
+}
+
+tasks.getByName<JavaExec>("run") {
+    classpath(tasks.getByName<Jar>("jvmJar")) // so that the JS artifacts generated by `jvmJar` can be found and served
+}
+
+// include JS artifacts in any generated JAR
+tasks.getByName<Jar>("jvmJar") {
+    val taskName = if (project.hasProperty("isProduction")
+        || project.gradle.startParameter.taskNames.contains("installDist")
+    ) {
+        "jsBrowserProductionWebpack"
+    } else {
+        "jsBrowserDevelopmentWebpack"
+    }
+    val webpackTask = tasks.getByName<KotlinWebpack>(taskName)
+    dependsOn(webpackTask) // make sure JS gets compiled first
+    from(File(webpackTask.destinationDirectory, webpackTask.outputFileName)) // bring output file along into the JAR
 }

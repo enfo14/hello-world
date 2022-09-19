@@ -1,4 +1,4 @@
-package com.plainconcepts.hello.viewmodels
+package com.plainconcepts.hello.common
 
 import kotlinx.serialization.Serializable
 

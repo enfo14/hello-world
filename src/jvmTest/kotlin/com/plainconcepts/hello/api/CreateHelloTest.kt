@@ -3,7 +3,7 @@ package com.plainconcepts.hello.api
 import com.plainconcepts.hello.plugins.configureMockDatabase
 import com.plainconcepts.hello.plugins.configureRouting
 import com.plainconcepts.hello.plugins.testClient
-import com.plainconcepts.hello.viewmodels.Message
+import com.plainconcepts.hello.common.Message
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
@@ -19,7 +19,7 @@ class CreateHelloTest {
             configureMockDatabase()
             configureRouting()
         }
-        val resp = testClient.put("/") { setBody("""{"code": "fr"}""") }
+        val resp = testClient.put("/api/hello") { setBody("""{"code": "fr"}""") }
         Assertions.assertEquals(HttpStatusCode.BadRequest, resp.status)
     }
 
@@ -29,9 +29,9 @@ class CreateHelloTest {
             configureMockDatabase()
             configureRouting()
         }
-        val resp = testClient.put("/") { setBody("""{"code": "fr", "hello": "Bonjour, monde!"}""")}
+        val resp = testClient.put("/api/hello") { setBody("""{"code": "fr", "hello": "Bonjour, monde!"}""")}
         Assertions.assertEquals(HttpStatusCode.Created, resp.status)
-        Assertions.assertEquals("/?lang=fr", resp.headers[HttpHeaders.Location])
+        Assertions.assertEquals("http://localhost/api/hello?lang=fr", resp.headers[HttpHeaders.Location])
     }
 
     @Test
@@ -40,8 +40,8 @@ class CreateHelloTest {
             configureMockDatabase()
             configureRouting()
         }
-        testClient.put("/") { setBody("""{"code": "fr", "hello": "Bonjour, monde!"}""")}
-        val resp = testClient.get("/?lang=fr").body<Message>()
+        testClient.put("/api/hello") { setBody("""{"code": "fr", "hello": "Bonjour, monde!"}""")}
+        val resp = testClient.get("/api/hello?lang=fr").body<Message>()
         Assertions.assertEquals("Bonjour, monde!", resp.message)
     }
 
@@ -51,9 +51,9 @@ class CreateHelloTest {
             configureMockDatabase()
             configureRouting()
         }
-        testClient.put("/") { setBody("""{"code": "fr", "hello": "Bonjour, monde!"}""")}
-        testClient.put("/") { setBody("""{"code": "fr", "hello": "Salut, monde!"}""")}
-        val resp = testClient.get("/?lang=fr").body<Message>()
+        testClient.put("/api/hello") { setBody("""{"code": "fr", "hello": "Bonjour, monde!"}""")}
+        testClient.put("/api/hello") { setBody("""{"code": "fr", "hello": "Salut, monde!"}""")}
+        val resp = testClient.get("/api/hello?lang=fr").body<Message>()
         Assertions.assertEquals("Salut, monde!", resp.message)
     }
 }

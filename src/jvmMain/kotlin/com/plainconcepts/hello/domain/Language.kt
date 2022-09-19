@@ -9,7 +9,7 @@ import org.jetbrains.exposed.sql.lowerCase
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
-object Languages : IntIdTable("hello") {
+object Languages : IntIdTable("HELLO") {
     val code = char("code", 2).index()
     val hello = text("hello")
 }
@@ -28,12 +28,12 @@ class Language(id: EntityID<Int>) : IntEntity(id) {
 
         fun find(lang: String): Language =
             transaction {
-                Language.find { Languages.code.lowerCase() eq lang.lowercase() }.first()
+                find { Languages.code.lowerCase() eq lang.lowercase() }.first()
             }
 
         fun upsert(lang: String, value: String): Language =
             transaction {
-                val language = Language.find { Languages.code.lowerCase() eq lang.lowercase() }.firstOrNull() ?: Language.new { code = lang }
+                val language = find { Languages.code.lowerCase() eq lang.lowercase() }.firstOrNull() ?: Language.new { code = lang }
                 language.hello = value
                 language.flush()
                 return@transaction language
