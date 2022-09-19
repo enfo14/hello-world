@@ -2,7 +2,7 @@ package com.plainconcepts.hello.api
 
 import com.plainconcepts.hello.domain.Language
 import com.plainconcepts.hello.common.Message
-import com.plainconcepts.hello.common.LanguageDTO
+import com.plainconcepts.hello.common.LanguageRequest
 import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.server.application.*
@@ -31,8 +31,8 @@ fun Route.helloController() {
 
     put<HelloController> {
         val language = try {
-            val payload = call.receive<LanguageDTO>()
-            Language.upsert(payload.code, payload.hello)
+            val payload = call.receive<LanguageRequest>()
+            Language.upsert(payload)
         } catch (e: BadRequestException) {
             return@put call.respond(HttpStatusCode.BadRequest, Message(e.message!!))
         } catch (e: Exception) {

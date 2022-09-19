@@ -1,3 +1,5 @@
+import com.plainconcepts.hello.common.LanguageDTO
+import components.AddLanguageForm
 import csstype.*
 import emotion.react.css
 import infrastructure.API
@@ -8,30 +10,29 @@ import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.footer
 import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.p
 
 private val scope = MainScope()
 
-private data class Language(val code: String, val name: String)
-
 val App = FC<Props> {
     var hello by useState("")
+    var showForm by useState(false)
+    var languages by useState(emptyList<LanguageDTO>())
+
+    val api = API()
 
     useEffectOnce {
         scope.launch {
-            hello = API().getHello()
+            languages = api.getLanguages()
+            hello = api.getHello()
         }
     }
 
-    val options = listOf(
-        Language("en", "English"),
-        Language("es", "Español"),
-        Language("ca", "Català"),
-        Language("eu", "Euskara"),
-        Language("jp", "日本語"),
-    )
+    val openForm = useCallback { showForm = true }
+    val closeForm = useCallback { showForm = false }
 
     div {
         css {
@@ -56,7 +57,7 @@ val App = FC<Props> {
             css {
                 fontSize = 120.px
                 fontWeight = FontWeight.bold
-                margin = Margin(45.vh, Auto.auto, 0.px)
+                margin = Margin(35.vh, Auto.auto, 0.px)
                 flex = Flex(1.unsafeCast<FlexGrow>(), 0.unsafeCast<FlexShrink>(), Auto.auto)
             }
 
@@ -68,8 +69,10 @@ val App = FC<Props> {
 
             css {
                 width = 100.pct
-                height = 20.vh
-                boxShadow = BoxShadow(0.px, (-5).px, 5.px, Color("#CBF9DD"))
+                height = 30.vh
+                padding = Padding(2.rem, 0.rem)
+                backgroundColor = Color("#CBF9DD")
+                boxShadow = BoxShadow(0.px, (-5).px, 5.px, Color("#87E3AB"))
                 textAlign = TextAlign.center
             }
 
@@ -96,12 +99,35 @@ val App = FC<Props> {
                     }
 
                     name = "lang"
-                    options.forEach {
+                    languages.forEach {
                         option {
                             value = it.code
                             +it.name
                         }
                     }
+                }
+            }
+
+            div {
+                css {
+                    marginTop = 2.rem
+                }
+
+                h2 {
+                    if (showForm) +"Teach me a new language ▲"
+                    if (!showForm) +"Teach me a new language ▼"
+                    onClick = { if (showForm) closeForm() else openForm() }
+                }
+
+                if (showForm) AddLanguageForm {
+                    submit = {
+                        scope.launch {
+                            api.upsertHello(it.code, it.name, it.hello)
+                            languages = api.getLanguages()
+                            hello = api.getHello(it.code)
+                        }
+                    }
+                    close = closeForm
                 }
             }
         }

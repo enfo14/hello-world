@@ -1,6 +1,7 @@
 package infrastructure
 
 import com.plainconcepts.hello.common.LanguageDTO
+import com.plainconcepts.hello.common.LanguageRequest
 import com.plainconcepts.hello.common.Message
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -33,9 +34,13 @@ internal class API(engine: HttpClientEngine = JsClient().create()) {
         }.body<Message>().message
     }
 
-    suspend fun upsertHello(lang: String, message: String): HttpResponse {
+    suspend fun upsertHello(code: String, lang: String, message: String): HttpResponse {
         return client.put("/api/hello") {
-            setBody(LanguageDTO(code = lang, hello = message))
+            setBody(LanguageRequest(code = code, name=lang, hello = message))
         }
+    }
+
+    suspend fun getLanguages(): List<LanguageDTO> {
+        return client.get("/api/languages").body()
     }
 }

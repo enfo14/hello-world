@@ -1,6 +1,7 @@
 package com.plainconcepts.hello.plugins
 
 import com.plainconcepts.hello.api.helloController
+import com.plainconcepts.hello.api.languageController
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -28,6 +29,7 @@ fun Application.configureRouting() {
         }
 
         route("/api") {
+            languageController()
             helloController()
         }
     }

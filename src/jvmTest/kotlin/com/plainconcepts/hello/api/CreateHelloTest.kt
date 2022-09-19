@@ -29,7 +29,7 @@ class CreateHelloTest {
             configureMockDatabase()
             configureRouting()
         }
-        val resp = testClient.put("/api/hello") { setBody("""{"code": "fr", "hello": "Bonjour, monde!"}""")}
+        val resp = testClient.put("/api/hello") { setBody("""{"code": "fr", "name": "Français", "hello": "Bonjour, monde!"}""".trimMargin())}
         Assertions.assertEquals(HttpStatusCode.Created, resp.status)
         Assertions.assertEquals("http://localhost/api/hello?lang=fr", resp.headers[HttpHeaders.Location])
     }
@@ -40,7 +40,7 @@ class CreateHelloTest {
             configureMockDatabase()
             configureRouting()
         }
-        testClient.put("/api/hello") { setBody("""{"code": "fr", "hello": "Bonjour, monde!"}""")}
+        testClient.put("/api/hello") { setBody("""{"code": "fr", "name": "Français", "hello": "Bonjour, monde!"}""")}
         val resp = testClient.get("/api/hello?lang=fr").body<Message>()
         Assertions.assertEquals("Bonjour, monde!", resp.message)
     }
@@ -51,8 +51,8 @@ class CreateHelloTest {
             configureMockDatabase()
             configureRouting()
         }
-        testClient.put("/api/hello") { setBody("""{"code": "fr", "hello": "Bonjour, monde!"}""")}
-        testClient.put("/api/hello") { setBody("""{"code": "fr", "hello": "Salut, monde!"}""")}
+        testClient.put("/api/hello") { setBody("""{"code": "fr", "name": "Français", "hello": "Bonjour, monde!"}""")}
+        testClient.put("/api/hello") { setBody("""{"code": "fr", "name": "Français", "hello": "Salut, monde!"}""")}
         val resp = testClient.get("/api/hello?lang=fr").body<Message>()
         Assertions.assertEquals("Salut, monde!", resp.message)
     }

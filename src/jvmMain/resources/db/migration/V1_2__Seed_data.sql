@@ -1,4 +1,4 @@
-INSERT INTO HELLO (CODE, HELLO) VALUES
+INSERT INTO LANGUAGE (CODE, HELLO) VALUES
     ('en', 'Hello, world!'),
     ('es', '¡Hola, mundo!'),
     ('ca', 'Hola, món!'),
